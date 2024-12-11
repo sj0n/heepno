@@ -24,3 +24,4 @@ Use " [command] --help" for more information about a command.
 
 - [Deepgram](https://developers.deepgram.com/docs/models-languages-overview)
 - [OpenAI](https://openai.com/)
+- [AssemblyAI](https://www.assemblyai.com/docs/getting-started/supported-languages)

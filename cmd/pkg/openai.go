@@ -30,7 +30,7 @@ var (
 
 			options := openai.AudioRequest{
 				FilePath: args[0],
-				Model:    Model,
+				Model:    OpenAIModel,
 				Language: Language,
 				Format:   getAudioRequestFormat(userFormat),
 			}
@@ -93,6 +93,6 @@ func init() {
 
 	openaiCmd.Flags().BoolVarP(&Translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
 	openaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
-	openaiCmd.Flags().StringVarP(&Model, "model", "m", "whisper-1", "Model to use.")
+	openaiCmd.Flags().StringVarP(&OpenAIModel, "model", "m", "whisper-1", "Model to use.")
 	openaiCmd.Flags().StringVarP(&userFormat, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
 }

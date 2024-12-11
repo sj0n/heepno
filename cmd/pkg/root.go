@@ -6,11 +6,13 @@ import (
 )
 
 var (
-	Language  string
-	Model     string
-	Format    openai.AudioResponseFormat
-	Translate bool
-	RootCmd   = &cobra.Command{
+	Language        string
+	OpenAIModel     string
+	DeepgramModel   string
+	AssemblyAIModel string
+	Format          openai.AudioResponseFormat
+	Translate       bool
+	RootCmd         = &cobra.Command{
 		Long: "A simple CLI tool to manage your tasks.",
 	}
 )

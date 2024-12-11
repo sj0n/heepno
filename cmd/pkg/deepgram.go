@@ -29,7 +29,7 @@ var (
 			ctx := context.Background()
 
 			options := interfaces.PreRecordedTranscriptionOptions{
-				Model:       Model,
+				Model:       DeepgramModel,
 				Language:    Language,
 				SmartFormat: true,
 			}
@@ -38,6 +38,7 @@ var (
 			dg := prerecorded.New(c)
 
 			fmt.Println("Transcribing...")
+			fmt.Println(DeepgramModel)
 			start := time.Now()
 			response, err := dg.FromFile(ctx, args[0], &options)
 
@@ -65,5 +66,5 @@ func init() {
 	RootCmd.AddCommand(deepgramCmd)
 
 	deepgramCmd.Flags().StringVarP(&Language, "language", "l", "", "Language to transcribe")
-	deepgramCmd.Flags().StringVarP(&Model, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
+	deepgramCmd.Flags().StringVarP(&DeepgramModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
 }
