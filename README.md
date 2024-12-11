@@ -5,10 +5,14 @@ A CLI program to transcribe audio files using Deepgram and OpenAI models
 ## Usage
 
 ```
+❯ heepno.exe -h
+A simple CLI tool to manage your tasks.
+
 Usage:
    [command]
 
 Available Commands:
+  aai         Transcribe an audio file using AssemblyAI model.
   completion  Generate the autocompletion script for the specified shell
   deepgram    Transcribe an audio file using Deepgram models.
   help        Help about any command
