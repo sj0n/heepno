@@ -14,6 +14,6 @@ var (
 	Translate       bool
 	RootCmd         = &cobra.Command{
 		Long: "A simple CLI tool to manage your tasks.",
-		Version: "1.1.3",
+		Version: "1.1.4",
 	}
 )

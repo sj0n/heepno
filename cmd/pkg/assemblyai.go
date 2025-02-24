@@ -2,7 +2,6 @@ package pkg
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -45,16 +44,9 @@ var aaiCmd = &cobra.Command{
 			fmt.Println("AssemblyAI Error:", err)
 			os.Exit(1)
 		}
-
-		data, err := json.MarshalIndent(transcript, "", "  ")
-
-		if err != nil {
-			fmt.Println("Marshal Error:", err)
-			os.Exit(1)
-		}
-
+		
 		elapsed := time.Since(start)
-		fmt.Println(string(data))
+		fmt.Println(*transcript.Text)
 		fmt.Printf("Transcribed in %s\n", elapsed)
 	},
 }
