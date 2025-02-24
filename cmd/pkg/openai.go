@@ -57,15 +57,20 @@ var (
 				os.Exit(1)
 			}
 
-			data, err := json.MarshalIndent(response, "", "  ")
-			if err != nil {
-				fmt.Println("OpenAI Error:", err)
-				os.Exit(1)
+			elapsed := time.Since(start)
+			
+			if userFormat == "json" || userFormat == "verbose_json" {
+				data, err := json.MarshalIndent(response, "", "  ")
+				if err != nil {
+					fmt.Println("OpenAI Error:", err)
+					os.Exit(1)
+				}
+				fmt.Println(string(data))
+			} else {
+				fmt.Println(response.Text)
 			}
 
-			elapsed := time.Since(start)
-			fmt.Println(string(data))
-			fmt.Printf("Finished in: %s\n", elapsed)
+			fmt.Printf("Transcribed in: %s\n", elapsed)
 			os.Exit(0)
 		},
 	}

@@ -2,7 +2,7 @@ package pkg
 
 import (
 	"context"
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -47,15 +47,15 @@ var (
 				os.Exit(1)
 			}
 
-			data, err := json.MarshalIndent(response, "", "  ")
+			// data, err := json.MarshalIndent(response, "", "  ")
 
-			if err != nil {
-				fmt.Println("Marshal Error: ", err)
-				os.Exit(1)
-			}
+			// if err != nil {
+			// 	fmt.Println("Marshal Error: ", err)
+			// 	os.Exit(1)
+			// }
 
 			elapsed := time.Since(start)
-			fmt.Println(string(data))
+			fmt.Println(*&response.Results.Channels[0].Alternatives[0].Paragraphs)
 			fmt.Println("Finished in ", elapsed)
 
 		},
