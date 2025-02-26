@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	userFormat string
+	userFormat  string
+	oaiModel    string
+	translate   bool
 
 	openaiCmd = &cobra.Command{
 		Use:   "openai <file>",
@@ -30,25 +32,109 @@ var (
 
 			options := openai.AudioRequest{
 				FilePath: args[0],
-				Model:    OpenAIModel,
+				Model:    oaiModel,
 				Language: Language,
 				Format:   getAudioRequestFormat(userFormat),
 			}
 
-			if Translate {
+			fmt.Println("Model:", oaiModel)
+
+			if translate {
 				fmt.Println("Translating...")
 				start := time.Now()
 				response, err := client.CreateTranslation(ctx, options)
+
 				if err != nil {
 					fmt.Println("OpenAI Error:", err)
 					os.Exit(1)
 				}
+
 				elapsed := time.Since(start)
-				fmt.Println(response)
 				fmt.Printf("Finished in: %s\n", elapsed)
-				os.Exit(0)
+
+				if output != "" {
+					fmt.Println("Saving to file...")
+					cwd, err := os.Getwd()
+
+					if err != nil {
+						fmt.Println("Error:", err)
+					}
+
+					switch userFormat {
+					case "json", "verbose_json":
+						file, err := os.Create(output + ".json")
+
+						if err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						defer file.Close()
+
+						data, err := json.MarshalIndent(response, "", "  ")
+
+						if err != nil {
+							fmt.Println("JSON Error:", err)
+							os.Exit(1)
+						}
+
+						if _, err := file.Write(data); err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						fmt.Printf("Transcription saved to %s\\%s\n", cwd, file.Name())
+						os.Exit(0)
+					case "text":
+						file, err := os.Create(output + ".txt")
+
+						if err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						defer file.Close()
+
+						if _, err := file.WriteString(response.Text); err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						fmt.Printf("Transcription saved to %s\\%s\n", cwd, file.Name())
+						os.Exit(0)
+					case "srt":
+						file, err := os.Create(output + ".srt")
+
+						if err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						defer file.Close()
+
+						if _, err := file.WriteString(response.Text); err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						fmt.Printf("Transcription saved to %s\\%s\n", cwd, file.Name())
+						os.Exit(0)
+					case "vtt":
+						file, err := os.Create(output + ".vtt")
+						if err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						defer file.Close()
+
+						if _, err := file.WriteString(response.Text); err != nil {
+							fmt.Println("File Error:", err)
+							os.Exit(1)
+						}
+						fmt.Printf("Transcription saved to %s\\%s\n", cwd, file.Name())
+						os.Exit(0)
+					}
+				} else {
+					fmt.Println(response)
+					os.Exit(0)
+				}
 			}
 
+			fmt.Println("Language:", Language)
 			fmt.Println("Transcribing...")
 			start := time.Now()
 			response, err := client.CreateTranscription(ctx, options)
@@ -58,20 +144,54 @@ var (
 			}
 
 			elapsed := time.Since(start)
-			
-			if userFormat == "json" || userFormat == "verbose_json" {
-				data, err := json.MarshalIndent(response, "", "  ")
-				if err != nil {
-					fmt.Println("OpenAI Error:", err)
-					os.Exit(1)
-				}
-				fmt.Println(string(data))
-			} else {
-				fmt.Println(response.Text)
-			}
+			fmt.Printf("Finished in: %s\n", elapsed)
 
-			fmt.Printf("Transcribed in: %s\n", elapsed)
-			os.Exit(0)
+			if output != "" {
+				cwd, err := os.Getwd()
+
+				if err != nil {
+					fmt.Println("Error:", err)
+				}
+
+				switch userFormat {
+				case "json", "verbose_json":
+					data, err := json.MarshalIndent(response, "", "  ")
+
+					if err != nil {
+						fmt.Println("JSON Error:", err)
+						os.Exit(1)
+					}
+
+					fileName, err := writeToFile(output, data, "json")
+
+					if err != nil {
+						fmt.Println("File Error:", err)
+						os.Exit(1)
+					}
+
+					fmt.Printf("Transcription saved in %s\\%s\n", cwd, fileName)
+				default:
+					fileName, err := writeToFile(output, response.Text, userFormat)
+
+					if err != nil {
+						fmt.Println("File Error:", err)
+						os.Exit(1)
+					}
+
+					fmt.Printf("Transcription saved in %s\\%s\n", cwd, fileName)
+				}
+			} else {
+				if userFormat == "json" || userFormat == "verbose_json" {
+					data, err := json.MarshalIndent(response, "", "  ")
+					if err != nil {
+						fmt.Println("OpenAI Error:", err)
+						os.Exit(1)
+					}
+					fmt.Println(string(data))
+				} else {
+					fmt.Println(response.Text)
+				}
+			}
 		},
 	}
 )
@@ -96,8 +216,9 @@ func getAudioRequestFormat(userFormat string) openai.AudioResponseFormat {
 func init() {
 	RootCmd.AddCommand(openaiCmd)
 
-	openaiCmd.Flags().BoolVarP(&Translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
+	openaiCmd.Flags().BoolVarP(&translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
 	openaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
-	openaiCmd.Flags().StringVarP(&OpenAIModel, "model", "m", "whisper-1", "Model to use.")
+	openaiCmd.Flags().StringVarP(&oaiModel, "model", "m", "whisper-1", "Model to use.")
 	openaiCmd.Flags().StringVarP(&userFormat, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
+	openaiCmd.Flags().StringVarP(&output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 }
