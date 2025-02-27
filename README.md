@@ -6,7 +6,7 @@ A CLI program to transcribe audio files using Deepgram and OpenAI models
 
 ```
 ❯ heepno -h
-A simple CLI tool to manage your tasks.
+Transcribe audio files using Deepgram, OpenAI and SeemblyAI models.
 
 Usage:
    [command]
