@@ -9,7 +9,7 @@ var (
 	output   string
 	format   string
 	RootCmd  = &cobra.Command{
-		Long:    "A simple CLI tool to manage your tasks.",
+		Long:    "Transcribe audio files using Deepgram, OpenAI and SeemblyAI models.",
 		Version: "1.2.0",
 	}
 )
