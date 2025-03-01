@@ -12,9 +12,7 @@ import (
 )
 
 var (
-	aaiOutput string
 	aaiModel  string
-	aaiFormat string
 	aaiCmd    = &cobra.Command{
 		Use:   "aai <file>",
 		Short: "Transcribe an audio file using AssemblyAI model.",
@@ -56,7 +54,7 @@ var (
 
 			fmt.Printf("Transcribed in %s\n", elapsed)
 
-			if aaiOutput != "" {
+			if output != "" {
 				cwd, err := os.Getwd()
 
 				if err != nil {
@@ -64,7 +62,7 @@ var (
 					os.Exit(1)
 				}
 
-				if aaiFormat == "json" {
+				if format == "json" {
 					data, err := json.MarshalIndent(transcript, "", "  ")
 
 					if err != nil {
@@ -72,7 +70,7 @@ var (
 						os.Exit(1)
 					}
 
-					fileName, err := writeToFile(aaiOutput, data, "json")
+					fileName, err := writeToFile(output, data, "json")
 
 					if err != nil {
 						fmt.Println("File Error:", err)
@@ -81,7 +79,7 @@ var (
 
 					fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
 				} else {
-					fileName, err := writeToFile(aaiOutput, *transcript.Text, "text")
+					fileName, err := writeToFile(output, *transcript.Text, "text")
 
 					if err != nil {
 						fmt.Println("File Error:", err)
@@ -91,7 +89,7 @@ var (
 					fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
 				}
 			} else {
-				if aaiFormat == "json" {
+				if format == "json" {
 					data, err := json.MarshalIndent(transcript, "", "  ")
 					if err != nil {
 						fmt.Println("OpenAI Error:", err)
@@ -111,6 +109,6 @@ func init() {
 
 	aaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language to transcribe. See https://www.assemblyai.com/docs/getting-started/supported-languages for more details.")
 	aaiCmd.Flags().StringVarP(&aaiModel, "model", "m", "best", "Model to use. <best|nano>")
-	aaiCmd.Flags().StringVarP(&aaiFormat, "format", "f", "json", "Transcribe format. <json|text>")
+	aaiCmd.Flags().StringVarP(&format, "format", "f", "json", "Transcribe format. <json|text>")
 	aaiCmd.Flags().StringVarP(&output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 }
