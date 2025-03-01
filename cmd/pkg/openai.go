@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	userFormat  string
 	oaiModel    string
 	translate   bool
 
@@ -34,7 +33,7 @@ var (
 				FilePath: args[0],
 				Model:    oaiModel,
 				Language: Language,
-				Format:   getAudioRequestFormat(userFormat),
+				Format:   getAudioRequestFormat(format),
 			}
 
 			fmt.Println("Model:", oaiModel)
@@ -60,7 +59,7 @@ var (
 						fmt.Println("Error:", err)
 					}
 
-					switch userFormat {
+					switch format {
 					case "json", "verbose_json":
 						file, err := os.Create(output + ".json")
 
@@ -129,8 +128,18 @@ var (
 						os.Exit(0)
 					}
 				} else {
-					fmt.Println(response)
-					os.Exit(0)
+					if format == "json" || format == "verbose_json" {
+						data, err := json.MarshalIndent(response, "", "  ")
+						if err != nil {
+							fmt.Println("OpenAI Error:", err)
+							os.Exit(1)
+						}
+						fmt.Println(string(data))
+						os.Exit(0)
+					} else {
+						fmt.Println(response.Text)
+						os.Exit(0)
+					}
 				}
 			}
 
@@ -153,7 +162,7 @@ var (
 					fmt.Println("Error:", err)
 				}
 
-				switch userFormat {
+				switch format {
 				case "json", "verbose_json":
 					data, err := json.MarshalIndent(response, "", "  ")
 
@@ -171,7 +180,7 @@ var (
 
 					fmt.Printf("Transcription saved in %s\\%s\n", cwd, fileName)
 				default:
-					fileName, err := writeToFile(output, response.Text, userFormat)
+					fileName, err := writeToFile(output, response.Text, format)
 
 					if err != nil {
 						fmt.Println("File Error:", err)
@@ -181,7 +190,7 @@ var (
 					fmt.Printf("Transcription saved in %s\\%s\n", cwd, fileName)
 				}
 			} else {
-				if userFormat == "json" || userFormat == "verbose_json" {
+				if format == "json" || format == "verbose_json" {
 					data, err := json.MarshalIndent(response, "", "  ")
 					if err != nil {
 						fmt.Println("OpenAI Error:", err)
@@ -196,8 +205,8 @@ var (
 	}
 )
 
-func getAudioRequestFormat(userFormat string) openai.AudioResponseFormat {
-	switch userFormat {
+func getAudioRequestFormat(format string) openai.AudioResponseFormat {
+	switch format {
 	case "json":
 		return openai.AudioResponseFormatJSON
 	case "text":
@@ -219,6 +228,6 @@ func init() {
 	openaiCmd.Flags().BoolVarP(&translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
 	openaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
 	openaiCmd.Flags().StringVarP(&oaiModel, "model", "m", "whisper-1", "Model to use.")
-	openaiCmd.Flags().StringVarP(&userFormat, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
+	openaiCmd.Flags().StringVarP(&format, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
 	openaiCmd.Flags().StringVarP(&output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 }
