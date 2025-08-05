@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sj0n/heepno/cmd/pkg"
+	"github.com/sj0n/heepno/pkg"
 )
 
 func main() {

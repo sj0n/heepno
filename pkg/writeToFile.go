@@ -19,7 +19,7 @@ func writeToFile(filename string, data any, format string) (string, error) {
 		ext = ".vtt"
 	}
 
-    fmt.Println("Saving to file...")
+	fmt.Println("Saving to file...")
 
 	file, err := os.Create(filename + ext)
 	if err != nil {
@@ -42,5 +42,5 @@ func writeToFile(filename string, data any, format string) (string, error) {
 		}
 	}
 
-	return file.Name(), err
+	return file.Name(), nil
 }
