@@ -1,12 +1,12 @@
 # Heepno
 
-A CLI program to transcribe audio files using Deepgram and OpenAI models
+A CLI program to transcribe audio files using Deepgram, OpenAI and AssemblyAI models.
 
 ## Usage
 
 ```
 ❯ heepno -h
-Transcribe audio files using Deepgram, OpenAI and SeemblyAI models.
+Transcribe audio files using Deepgram, OpenAI and AssemblyAI models.
 
 Usage:
    [command]

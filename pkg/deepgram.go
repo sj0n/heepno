@@ -2,15 +2,16 @@ package pkg
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	prerecorded "github.com/deepgram/deepgram-go-sdk/pkg/api/listen/v1/rest"
 	interfaces "github.com/deepgram/deepgram-go-sdk/pkg/client/interfaces"
 	client "github.com/deepgram/deepgram-go-sdk/pkg/client/listen/v1/rest"
 
+	"github.com/sj0n/heepno/pkg/shared"
 	"github.com/spf13/cobra"
 )
 
@@ -21,87 +22,69 @@ var (
 		Short: "Transcribe an audio file using Deepgram models.",
 		Long:  "Transcribe an audio file using Deepgram models.",
 		Args:  cobra.ExactArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			if os.Getenv("DEEPGRAM_API_KEY") == "" {
-				fmt.Println("Deepgram Error: Deepgram API key is not set")
-				os.Exit(1)
-			}
-
-			ctx := context.Background()
-
-			options := interfaces.PreRecordedTranscriptionOptions{
-				Model:       dgModel,
-				Language:    Language,
-				SmartFormat: true,
-			}
-
-			c := client.NewWithDefaults()
-			dg := prerecorded.New(c)
-
-			fmt.Println("Model:", dgModel)
-			fmt.Println("Language:", Language)
-			fmt.Println("Transcribing...")
-
-			start := time.Now()
-			response, err := dg.FromFile(ctx, args[0], &options)
-			elapsed := time.Since(start)
-
-			if err != nil {
-				fmt.Println("Deepgram Error: ", err)
-				os.Exit(1)
-			}
-			fmt.Println("Finished in ", elapsed)
-
-			if output != "" {
-				cwd, err := os.Getwd()
-
-				if err != nil {
-					fmt.Println("Error:", err)
-					os.Exit(1)
-				}
-
-				if format == "json" {
-					data, err := json.MarshalIndent(response, "", "  ")
-
-					if err != nil {
-						fmt.Println("JSON Error:", err)
-						os.Exit(1)
-					}
-
-					fileName, err := writeToFile(output, data, "json")
-
-					if err != nil {
-						fmt.Println("File Error:", err)
-						os.Exit(1)
-					}
-
-					fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
-				} else {
-					fileName, err := writeToFile(output, response.Results.Channels[0].Alternatives[0].Paragraphs.Transcript, "text")
-
-					if err != nil {
-						fmt.Println("File Error:", err)
-						os.Exit(1)
-					}
-
-					fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
-				}
-			} else {
-				if format == "json" {
-					data, err := json.MarshalIndent(response, "", " ")
-
-					if err != nil {
-						fmt.Println("OpenAI Error:", err)
-						os.Exit(1)
-					}
-					fmt.Println(string(data))
-				} else {
-					fmt.Println(response.Results.Channels[0].Alternatives[0].Paragraphs.Transcript)
-				}
-			}
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return deepgram(args[0])
 		},
 	}
 )
+
+func deepgram(file string) error {
+	if os.Getenv("DEEPGRAM_API_KEY") == "" {
+		return fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
+	}
+
+	ctx := context.Background()
+
+	options := interfaces.PreRecordedTranscriptionOptions{
+		Model:       dgModel,
+		Language:    Language,
+		SmartFormat: true,
+	}
+
+	c := client.NewWithDefaults()
+	dg := prerecorded.New(c)
+
+	fmt.Println("+----------------+----------------------+")
+	fmt.Printf("| %-14s | %-20s |\n", "Model", dgModel)
+	fmt.Printf("| %-14s | %-20s |\n", "Language", Language)
+	fmt.Println("+----------------+----------------------+")
+	fmt.Println("| Transcribing...|                      |")
+	fmt.Println("+----------------+----------------------+")
+
+	start := time.Now()
+	response, err := dg.FromFile(ctx, file, &options)
+	elapsed := time.Since(start)
+
+	if err != nil {
+		return fmt.Errorf("Transcription Error: %w", err)
+	}
+
+	fmt.Printf("| Transcribed in | %-20s |\n", elapsed)
+
+	var text string
+	if len(response.Results.Channels) > 0 &&
+		len(response.Results.Channels[0].Alternatives) > 0 &&
+		response.Results.Channels[0].Alternatives[0].Paragraphs != nil {
+		text = strings.TrimSpace(response.Results.Channels[0].Alternatives[0].Paragraphs.Transcript)
+	}
+
+	if text == "" {
+		fmt.Println("The model failed to transcribe text from the audio. Try using a different service instead.")
+		return nil
+	}
+
+	if output != "" {
+		if err := shared.Save(response, text, format, output); err != nil {
+			return fmt.Errorf("File Error: %w", err)
+		}
+	} else {
+		if err := shared.Print(response, text, format); err != nil {
+			return fmt.Errorf("Print Error: %w", err)
+		}
+	}
+
+	return nil
+}
 
 func init() {
 	RootCmd.AddCommand(deepgramCmd)
