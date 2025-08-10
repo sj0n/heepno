@@ -7,7 +7,6 @@ import (
 )
 
 func Print(data any, text string, format string) error {
-	fmt.Printf("+----------------+----------------------+\n\n")
 	switch format {
 	case "json", "verbose_json":
 		data, err := json.MarshalIndent(data, "", "  ")
