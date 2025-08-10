@@ -44,12 +44,7 @@ func deepgram(file string) error {
 	c := client.NewWithDefaults()
 	dg := prerecorded.New(c)
 
-	fmt.Println("+----------------+----------------------+")
-	fmt.Printf("| %-14s | %-20s |\n", "Model", dgModel)
-	fmt.Printf("| %-14s | %-20s |\n", "Language", Language)
-	fmt.Println("+----------------+----------------------+")
-	fmt.Println("| Transcribing...|                      |")
-	fmt.Println("+----------------+----------------------+")
+	shared.PrintTranscriptionStatus("Deepgram", dgModel, Language, "Transcribing...")
 
 	start := time.Now()
 	response, err := dg.FromFile(ctx, file, &options)
@@ -59,7 +54,7 @@ func deepgram(file string) error {
 		return fmt.Errorf("Transcription Error: %w", err)
 	}
 
-	fmt.Printf("| Transcribed in | %-20s |\n", elapsed)
+	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
 	var text string
 	if len(response.Results.Channels) > 0 &&
@@ -69,16 +64,16 @@ func deepgram(file string) error {
 	}
 
 	if text == "" {
-		fmt.Println("The model failed to transcribe text from the audio. Try using a different service instead.")
+		shared.UpdateTranscriptionStatus("", fmt.Errorf("The model failed to transcribe text from the audio. Try using a different service instead."))
 		return nil
 	}
 
-	if output != "" {
-		if err := shared.Save(response, text, format, output); err != nil {
+	if Output != "" {
+		if err := shared.Save(response, text, Format, Output); err != nil {
 			return fmt.Errorf("File Error: %w", err)
 		}
 	} else {
-		if err := shared.Print(response, text, format); err != nil {
+		if err := shared.Print(response, text, Format); err != nil {
 			return fmt.Errorf("Print Error: %w", err)
 		}
 	}
@@ -91,6 +86,6 @@ func init() {
 
 	deepgramCmd.Flags().StringVarP(&Language, "language", "l", "", "Language to transcribe")
 	deepgramCmd.Flags().StringVarP(&dgModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
-	deepgramCmd.Flags().StringVarP(&output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
-	deepgramCmd.Flags().StringVarP(&format, "format", "f", "json", "Transcribe format. <json|text>")
+	deepgramCmd.Flags().StringVarP(&Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
+	deepgramCmd.Flags().StringVarP(&Format, "format", "f", "json", "Transcribe format. <json|text>")
 }
