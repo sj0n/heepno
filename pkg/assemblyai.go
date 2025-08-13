@@ -6,14 +6,15 @@ import (
 	"os"
 	"time"
 
-	aai "github.com/AssemblyAI/assemblyai-go-sdk"
+	"github.com/AssemblyAI/assemblyai-go-sdk"
+	"github.com/sj0n/heepno/pkg/config"
+	"github.com/sj0n/heepno/pkg/interfaces"
 	"github.com/sj0n/heepno/pkg/shared"
 	"github.com/spf13/cobra"
 )
 
 var (
-	aaiModel string
-	aaiCmd   = &cobra.Command{
+	aaiCmd = &cobra.Command{
 		Use:   "aai <file>",
 		Short: "Transcribe an audio file using AssemblyAI model.",
 		Long:  "Transcribe an audio file using AssemblyAI model.",
@@ -30,24 +31,19 @@ func assemblyAI(file string) error {
 	}
 
 	ctx := context.Background()
-	client := aai.NewClientWithOptions(aai.WithBaseURL("https://api.assemblyai.com/v2/transcript"))
+	client := interfaces.NewAssemblAIProvider()
 
-	audioFile, err := os.Open(file)
-
-	if err != nil {
-		return fmt.Errorf("File Error: %w", err)
-	}
-	defer audioFile.Close()
-
-	shared.PrintTranscriptionStatus("AssemblyAI", aaiModel, Language, "Transcribing...")
+	shared.PrintTranscriptionStatus("AssemblyAI", config.Global.Model, config.Global.Language, "Transcribing...")
 
 	start := time.Now()
-	transcript, err := aaiTranscribe(ctx, client, audioFile)
+	result, err := client.Transcribe(ctx, file)
 	elapsed := time.Since(start)
 
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
+
+	transcript := result.(assemblyai.Transcript)
 
 	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
@@ -56,12 +52,12 @@ func assemblyAI(file string) error {
 		text = *transcript.Text
 	}
 
-	if Output != "" {
-		if err := shared.Save(transcript, text, Format, Output); err != nil {
+	if config.Global.Output != "" {
+		if err := shared.Save(transcript, text, config.Global.Format, config.Global.Output); err != nil {
 			return fmt.Errorf("File Error: %w", err)
 		}
 	} else {
-		if err := shared.Print(transcript, text, Format); err != nil {
+		if err := shared.Print(transcript, text, config.Global.Format); err != nil {
 			return fmt.Errorf("Print Error: %w", err)
 		}
 	}
@@ -69,25 +65,11 @@ func assemblyAI(file string) error {
 	return nil
 }
 
-func aaiTranscribe(ctx context.Context, client *aai.Client, audioFile *os.File) (*aai.Transcript, error) {
-	transcript, err := client.Transcripts.TranscribeFromReader(ctx, audioFile, &aai.TranscriptOptionalParams{
-		LanguageCode: aai.TranscriptLanguageCode(Language),
-		SpeechModel:  aai.SpeechModel(aaiModel),
-		FormatText:   aai.Bool(true),
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("Transcription Error: %w", err)
-	}
-
-	return &transcript, nil
-}
-
 func init() {
 	RootCmd.AddCommand(aaiCmd)
 
-	aaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language to transcribe. See https://www.assemblyai.com/docs/getting-started/supported-languages for more details.")
-	aaiCmd.Flags().StringVarP(&Format, "format", "f", "json", "Transcribe format. <json|text>")
-	aaiCmd.Flags().StringVarP(&Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
-	aaiCmd.Flags().StringVarP(&aaiModel, "model", "m", "universal", "Model to use. <universal|slam-1(only support English.)>")
+	aaiCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language to transcribe. See https://www.assemblyai.com/docs/getting-started/supported-languages for more details.")
+	aaiCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Transcribe format. <json|text>")
+	aaiCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
+	aaiCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "universal", "Model to use. <universal|slam-1(only support English.)>")
 }
