@@ -67,7 +67,7 @@ func init() {
 
 	openaiCmd.Flags().BoolVarP(&translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
 	openaiCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
-	openaiCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "whisper-1", "Model to use.")
+	openaiCmd.Flags().StringVarP(&config.Global.OpenaiModel, "model", "m", "whisper-1", "Model to use.")
 	openaiCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
 	openaiCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 }

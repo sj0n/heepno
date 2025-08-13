@@ -33,7 +33,7 @@ func assemblyAI(file string) error {
 	ctx := context.Background()
 	client := interfaces.NewAssemblAIProvider()
 
-	shared.PrintTranscriptionStatus("AssemblyAI", config.Global.Model, config.Global.Language, "Transcribing...")
+	shared.PrintTranscriptionStatus("AssemblyAI", config.Global.AaiModel, config.Global.Language, "Transcribing...")
 
 	start := time.Now()
 	result, err := client.Transcribe(ctx, file)
@@ -71,5 +71,5 @@ func init() {
 	aaiCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language to transcribe. See https://www.assemblyai.com/docs/getting-started/supported-languages for more details.")
 	aaiCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Transcribe format. <json|text>")
 	aaiCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
-	aaiCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "universal", "Model to use. <universal|slam-1(only support English.)>")
+	aaiCmd.Flags().StringVarP(&config.Global.AaiModel, "model", "m", "universal", "Model to use. <universal|slam-1(only support English.)>")
 }

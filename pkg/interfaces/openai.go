@@ -17,7 +17,7 @@ type OpenAIProvider struct {
 
 var OpenAIOptions openai.AudioRequest = openai.AudioRequest{
 	FilePath: "",
-	Model: config.Global.Model,
+	Model: config.Global.OpenaiModel,
 	Language: config.Global.Language,
 	Format: getAudioRequestFormat(config.Global.Format),
 }
@@ -29,7 +29,7 @@ func NewOpenAIProvider() *OpenAIProvider {
 }
 
 func (p *OpenAIProvider) Transcribe(ctx context.Context, file string) (any, error) {
-	shared.PrintTranscriptionStatus("OpenAI", config.Global.Model, config.Global.Language, "Transcribing...")
+	shared.PrintTranscriptionStatus("OpenAI", config.Global.OpenaiModel, config.Global.Language, "Transcribing...")
 
 	start := time.Now()
 
@@ -47,7 +47,7 @@ func (p *OpenAIProvider) Transcribe(ctx context.Context, file string) (any, erro
 }
 
 func (p *OpenAIProvider) Translate(ctx context.Context, file string) (any, error) {
-	shared.PrintTranscriptionStatus("OpenAI", config.Global.Model, config.Global.Language, "Translating...")
+	shared.PrintTranscriptionStatus("OpenAI", config.Global.OpenaiModel, config.Global.Language, "Translating...")
 
 	start := time.Now()
 

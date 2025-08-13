@@ -35,7 +35,7 @@ func deepgram(file string) error {
 	ctx := context.Background()
 	dg := interfaces.NewDeepgramProvider()
 
-	shared.PrintTranscriptionStatus("Deepgram", config.Global.Model, config.Global.Language, "Transcribing...")
+	shared.PrintTranscriptionStatus("Deepgram", config.Global.DeepgramModel, config.Global.Language, "Transcribing...")
 
 	start := time.Now()
 	result, err := dg.Transcribe(ctx, file)
@@ -77,7 +77,7 @@ func init() {
 	RootCmd.AddCommand(deepgramCmd)
 
 	deepgramCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language to transcribe")
-	deepgramCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
+	deepgramCmd.Flags().StringVarP(&config.Global.DeepgramModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
 	deepgramCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 	deepgramCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Transcribe format. <json|text>")
 }
