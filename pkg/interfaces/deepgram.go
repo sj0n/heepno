@@ -25,7 +25,7 @@ func NewDeepgramProvider() *DeepgramProvider {
 
 func (p *DeepgramProvider) Transcribe(ctx context.Context, file string) (any, error) {
 	response, err := p.FromFile(ctx, file, &interfacesv1.PreRecordedTranscriptionOptions{
-		Model:       config.Global.Model,
+		Model:       config.Global.DeepgramModel,
 		Language:    config.Global.Language,
 		SmartFormat: true,
 	})

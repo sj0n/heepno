@@ -29,7 +29,7 @@ func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string) (any, 
 	transcript, err := p.Transcripts.TranscribeFromReader(ctx, f, &assemblyai.TranscriptOptionalParams{
 		LanguageCode: assemblyai.TranscriptLanguageCode(config.Global.Language),
 		FormatText:   assemblyai.Bool(true),
-		SpeechModel:  assemblyai.SpeechModel(config.Global.Model),
+		SpeechModel:  assemblyai.SpeechModel(config.Global.AaiModel),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Transcription Error: %w", err)
