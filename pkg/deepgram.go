@@ -7,16 +7,15 @@ import (
 	"strings"
 	"time"
 
-	prerecorded "github.com/deepgram/deepgram-go-sdk/pkg/api/listen/v1/rest"
-	interfaces "github.com/deepgram/deepgram-go-sdk/pkg/client/interfaces"
-	client "github.com/deepgram/deepgram-go-sdk/pkg/client/listen/v1/rest"
+	itfs "github.com/deepgram/deepgram-go-sdk/pkg/api/listen/v1/rest/interfaces"
 
+	"github.com/sj0n/heepno/pkg/config"
+	"github.com/sj0n/heepno/pkg/interfaces"
 	"github.com/sj0n/heepno/pkg/shared"
 	"github.com/spf13/cobra"
 )
 
 var (
-	dgModel     string
 	deepgramCmd = &cobra.Command{
 		Use:   "dg <file>",
 		Short: "Transcribe an audio file using Deepgram models.",
@@ -34,33 +33,26 @@ func deepgram(file string) error {
 	}
 
 	ctx := context.Background()
+	dg := interfaces.NewDeepgramProvider()
 
-	options := interfaces.PreRecordedTranscriptionOptions{
-		Model:       dgModel,
-		Language:    Language,
-		SmartFormat: true,
-	}
-
-	c := client.NewWithDefaults()
-	dg := prerecorded.New(c)
-
-	shared.PrintTranscriptionStatus("Deepgram", dgModel, Language, "Transcribing...")
+	shared.PrintTranscriptionStatus("Deepgram", config.Global.Model, config.Global.Language, "Transcribing...")
 
 	start := time.Now()
-	response, err := dg.FromFile(ctx, file, &options)
+	result, err := dg.Transcribe(ctx, file)
 	elapsed := time.Since(start)
 
 	if err != nil {
-		return fmt.Errorf("Transcription Error: %w", err)
+		return err
 	}
 
 	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
+	transcript := result.(*itfs.PreRecordedResponse)
 	var text string
-	if len(response.Results.Channels) > 0 &&
-		len(response.Results.Channels[0].Alternatives) > 0 &&
-		response.Results.Channels[0].Alternatives[0].Paragraphs != nil {
-		text = strings.TrimSpace(response.Results.Channels[0].Alternatives[0].Paragraphs.Transcript)
+	if len(transcript.Results.Channels) > 0 &&
+		len(transcript.Results.Channels[0].Alternatives) > 0 &&
+		transcript.Results.Channels[0].Alternatives[0].Paragraphs != nil {
+		text = strings.TrimSpace(transcript.Results.Channels[0].Alternatives[0].Paragraphs.Transcript)
 	}
 
 	if text == "" {
@@ -68,12 +60,12 @@ func deepgram(file string) error {
 		return nil
 	}
 
-	if Output != "" {
-		if err := shared.Save(response, text, Format, Output); err != nil {
+	if config.Global.Output != "" {
+		if err := shared.Save(transcript, text, config.Global.Format, config.Global.Output); err != nil {
 			return fmt.Errorf("File Error: %w", err)
 		}
 	} else {
-		if err := shared.Print(response, text, Format); err != nil {
+		if err := shared.Print(transcript, text, config.Global.Format); err != nil {
 			return fmt.Errorf("Print Error: %w", err)
 		}
 	}
@@ -84,8 +76,8 @@ func deepgram(file string) error {
 func init() {
 	RootCmd.AddCommand(deepgramCmd)
 
-	deepgramCmd.Flags().StringVarP(&Language, "language", "l", "", "Language to transcribe")
-	deepgramCmd.Flags().StringVarP(&dgModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
-	deepgramCmd.Flags().StringVarP(&Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
-	deepgramCmd.Flags().StringVarP(&Format, "format", "f", "json", "Transcribe format. <json|text>")
+	deepgramCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language to transcribe")
+	deepgramCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
+	deepgramCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
+	deepgramCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Transcribe format. <json|text>")
 }

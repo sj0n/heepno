@@ -5,11 +5,8 @@ import (
 )
 
 var (
-	Language string
-	Output   string
-	Format   string
-	RootCmd  = &cobra.Command{
+	RootCmd = &cobra.Command{
 		Long:    "Transcribe audio files using Deepgram, OpenAI and AssemblyAI models.",
-		Version: "1.4.0",
+		Version: "1.5.0",
 	}
 )

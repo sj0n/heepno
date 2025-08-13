@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sj0n/heepno/pkg/config"
+	"github.com/sj0n/heepno/pkg/interfaces"
 	"github.com/sj0n/heepno/pkg/shared"
 	"github.com/spf13/cobra"
 )
@@ -31,96 +32,42 @@ func openAI(file string) error {
 	}
 
 	ctx := context.Background()
-	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+	client := interfaces.NewOpenAIProvider()
 
-	options := openai.AudioRequest{
-		FilePath: file,
-		Model:    oaiModel,
-		Language: Language,
-		Format:   getAudioRequestFormat(Format),
-	}
+	var response any
+	var err error
 
 	if translate {
-		return oaiTranslate(ctx, client, options)
+		response, err = client.Translate(ctx, file)
+	} else {
+		response, err = client.Transcribe(ctx, file)
 	}
-	return oaiTranscribe(ctx, client, options)
-}
 
-func oaiTranslate(ctx context.Context, client *openai.Client, options openai.AudioRequest) error {
-	shared.PrintTranscriptionStatus("OpenAI", oaiModel, Language, "Translating...")
-
-	start := time.Now()
-
-	response, err := client.CreateTranslation(ctx, options)
 	if err != nil {
-		return fmt.Errorf("Translation Error: %w", err)
+		return err
 	}
 
-	elapsed := time.Since(start)
-	shared.UpdateTranscriptionStatus(fmt.Sprintf("Translated in %s", elapsed.Round(time.Second)), nil)
+	transcript := response.(*openai.AudioResponse)
 
-	if Output != "" {
-		if err := shared.Save(response, response.Text, Format, Output); err != nil {
+	if config.Global.Output != "" {
+		if err := shared.Save(transcript, transcript.Text, config.Global.Format, config.Global.Output); err != nil {
 			return fmt.Errorf("File Error: %w", err)
 		}
 	} else {
-		if err := shared.Print(response, response.Text, Format); err != nil {
+		if err := shared.Print(transcript, transcript.Text, config.Global.Format); err != nil {
 			return fmt.Errorf("Print Error: %w", err)
 		}
 	}
 
 	return nil
-}
-
-func oaiTranscribe(ctx context.Context, client *openai.Client, options openai.AudioRequest) error {
-	shared.PrintTranscriptionStatus("OpenAI", oaiModel, Language, "Transcribing...")
-
-	start := time.Now()
-
-	response, err := client.CreateTranscription(ctx, options)
-	if err != nil {
-		return fmt.Errorf("Transcription Error: %w", err)
-	}
-
-	elapsed := time.Since(start)
-	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
-
-	if Output != "" {
-		if err := shared.Save(response, response.Text, Format, Output); err != nil {
-			return fmt.Errorf("File Error: %w", err)
-		}
-	} else {
-		if err := shared.Print(response, response.Text, Format); err != nil {
-			return fmt.Errorf("Print Error: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func getAudioRequestFormat(format string) openai.AudioResponseFormat {
-	switch format {
-	case "json":
-		return openai.AudioResponseFormatJSON
-	case "text":
-		return openai.AudioResponseFormatText
-	case "srt":
-		return openai.AudioResponseFormatSRT
-	case "verbose_json":
-		return openai.AudioResponseFormatVerboseJSON
-	case "vtt":
-		return openai.AudioResponseFormatVTT
-	default:
-		return openai.AudioResponseFormatJSON
-	}
 }
 
 func init() {
 	RootCmd.AddCommand(openaiCmd)
 
 	openaiCmd.Flags().BoolVarP(&translate, "translate", "t", false, "Translate the audio file. Not setting this flag will transcribe the audio file.")
-	openaiCmd.Flags().StringVarP(&Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
-	openaiCmd.Flags().StringVarP(&oaiModel, "model", "m", "whisper-1", "Model to use.")
-	openaiCmd.Flags().StringVarP(&Format, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
-	openaiCmd.Flags().StringVarP(&Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
+	openaiCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language of the source audio. Setting this helps in accuracy and velocity.")
+	openaiCmd.Flags().StringVarP(&config.Global.Model, "model", "m", "whisper-1", "Model to use.")
+	openaiCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Format to use. json, text, srt, verbose_json, vtt")
+	openaiCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
 }
