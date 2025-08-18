@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// Print prints the data to the console in the specified format.
 func Print(data any, text string, format string) error {
 	switch format {
 	case "json", "verbose_json":
@@ -21,6 +22,7 @@ func Print(data any, text string, format string) error {
 	return nil
 }
 
+// Save saves the data to the specified output file in the specified format.
 func Save(data any, text string, format string, output string) error {
 	cwd, err := os.Getwd()
 
