@@ -17,9 +17,9 @@ type OpenAIProvider struct {
 
 var OpenAIOptions openai.AudioRequest = openai.AudioRequest{
 	FilePath: "",
-	Model: config.Global.OpenaiModel,
+	Model:    config.Global.OpenaiModel,
 	Language: config.Global.Language,
-	Format: getAudioRequestFormat(config.Global.Format),
+	Format:   getAudioRequestFormat(config.Global.Format),
 }
 
 func NewOpenAIProvider() *OpenAIProvider {
@@ -34,7 +34,7 @@ func (p *OpenAIProvider) Transcribe(ctx context.Context, file string) (any, erro
 	start := time.Now()
 
 	OpenAIOptions.FilePath = file
-	response, err :=p.CreateTranscription(ctx, OpenAIOptions)
+	response, err := p.CreateTranscription(ctx, OpenAIOptions)
 
 	if err != nil {
 		return nil, fmt.Errorf("Transcription Error: %w", err)
@@ -52,7 +52,7 @@ func (p *OpenAIProvider) Translate(ctx context.Context, file string) (any, error
 	start := time.Now()
 
 	OpenAIOptions.FilePath = file
-	response, err :=p.CreateTranslation(ctx, OpenAIOptions)
+	response, err := p.CreateTranslation(ctx, OpenAIOptions)
 
 	if err != nil {
 		return nil, fmt.Errorf("Translation Error: %w", err)
