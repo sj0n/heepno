@@ -71,7 +71,7 @@ func TestAAICmd_FlagsDefaults(t *testing.T) {
 			val, err := tc.getFlagValue()
 
 			if err != nil {
-				t.Fatalf("error getting flag: %v", err)
+				t.Errorf("error getting flag: %v", err)
 			}
 
 			if val != tc.expected {
