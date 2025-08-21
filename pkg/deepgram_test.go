@@ -32,40 +32,40 @@ func TestDGCmd_FlagsDefaults(t *testing.T) {
 	}
 
 	testCases := []struct {
-		name string
-		expected string
+		name         string
+		expected     string
 		getFlagValue func() (string, error)
 	}{
 		{
-			name: "language",
+			name:     "language",
 			expected: "",
 			getFlagValue: func() (string, error) {
 				return dgCmd.Flags().GetString("language")
 			},
 		},
 		{
-			name: "format",
+			name:     "format",
 			expected: "json",
 			getFlagValue: func() (string, error) {
 				return dgCmd.Flags().GetString("format")
 			},
 		},
 		{
-			name: "output",
+			name:     "output",
 			expected: "",
 			getFlagValue: func() (string, error) {
 				return dgCmd.Flags().GetString("output")
 			},
 		},
 		{
-			name: "model",
+			name:     "model",
 			expected: "nova-2",
 			getFlagValue: func() (string, error) {
 				return dgCmd.Flags().GetString("model")
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			value, err := tc.getFlagValue()

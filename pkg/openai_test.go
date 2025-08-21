@@ -31,64 +31,48 @@ func TestOpenAICmd_FlagsDefaults(t *testing.T) {
 		t.Fatalf("openaiCmd not found")
 	}
 
-	// Test translate flag default
-	translate, err := oaiCmd.Flags().GetBool("translate")
-	if err != nil {
-		t.Fatalf("translate flag missing: %v", err)
-	}
-	if translate != false {
-		t.Errorf("expected default translate to be false, got %v", translate)
-	}
-	
 	testCases := []struct {
-		name string
-		expected any
+		name         string
+		expected     any
 		getFlagValue func() (any, error)
 	}{
 		{
-			name: "format",
-			expected: "json",
-			getFlagValue: func() (any, error) {
-				return oaiCmd.Flags().GetString("format")
-			},
-		},
-		{
-			name: "translate",
+			name:     "translate",
 			expected: false,
 			getFlagValue: func() (any, error) {
 				return openaiCmd.Flags().GetBool("translate")
 			},
 		},
 		{
-			name: "language",
+			name:     "language",
 			expected: "",
 			getFlagValue: func() (any, error) {
 				return openaiCmd.Flags().GetString("language")
 			},
 		},
 		{
-			name: "format",
+			name:     "format",
 			expected: "json",
 			getFlagValue: func() (any, error) {
 				return oaiCmd.Flags().GetString("format")
 			},
 		},
 		{
-			name: "output",
+			name:     "output",
 			expected: "",
 			getFlagValue: func() (any, error) {
 				return oaiCmd.Flags().GetString("output")
 			},
 		},
 		{
-			name: "model",
+			name:     "model",
 			expected: "whisper-1",
 			getFlagValue: func() (any, error) {
 				return oaiCmd.Flags().GetString("model")
 			},
 		},
 	}
-	
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			value, err := tc.getFlagValue()
