@@ -75,7 +75,7 @@ func TestAAICmd_FlagsDefaults(t *testing.T) {
 			}
 
 			if val != tc.expected {
-				t.Errorf("Expecting %q got %q", tc.expected, val)
+				t.Errorf("expected %v, got %v", tc.expected, val)
 			}
 		})
 	}
