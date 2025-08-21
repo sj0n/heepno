@@ -31,49 +31,58 @@ func TestOpenAICmd_FlagsDefaults(t *testing.T) {
 		t.Fatalf("openaiCmd not found")
 	}
 
-	// Test translate flag default
-	translate, err := oaiCmd.Flags().GetBool("translate")
-	if err != nil {
-		t.Fatalf("translate flag missing: %v", err)
-	}
-	if translate != false {
-		t.Errorf("expected default translate to be false, got %v", translate)
+	testCases := []struct {
+		name         string
+		expected     any
+		getFlagValue func() (any, error)
+	}{
+		{
+			name:     "translate",
+			expected: false,
+			getFlagValue: func() (any, error) {
+				return openaiCmd.Flags().GetBool("translate")
+			},
+		},
+		{
+			name:     "language",
+			expected: "",
+			getFlagValue: func() (any, error) {
+				return openaiCmd.Flags().GetString("language")
+			},
+		},
+		{
+			name:     "format",
+			expected: "json",
+			getFlagValue: func() (any, error) {
+				return oaiCmd.Flags().GetString("format")
+			},
+		},
+		{
+			name:     "output",
+			expected: "",
+			getFlagValue: func() (any, error) {
+				return oaiCmd.Flags().GetString("output")
+			},
+		},
+		{
+			name:     "model",
+			expected: "whisper-1",
+			getFlagValue: func() (any, error) {
+				return oaiCmd.Flags().GetString("model")
+			},
+		},
 	}
 
-	// Test language flag default
-	lang, err := oaiCmd.Flags().GetString("language")
-	if err != nil {
-		t.Fatalf("language flag missing: %v", err)
-	}
-	if lang != "" {
-		t.Errorf("expected default language to be empty, got %q", lang)
-	}
-
-	// Test model flag default
-	model, err := oaiCmd.Flags().GetString("model")
-	if err != nil {
-		t.Fatalf("model flag missing: %v", err)
-	}
-	if model != "whisper-1" {
-		t.Errorf("expected default model to be 'whisper-1', got %q", model)
-	}
-
-	// Test format flag default
-	format, err := oaiCmd.Flags().GetString("format")
-	if err != nil {
-		t.Fatalf("format flag missing: %v", err)
-	}
-	if format != "json" {
-		t.Errorf("expected default format to be 'json', got %q", format)
-	}
-
-	// Test output flag default
-	output, err := oaiCmd.Flags().GetString("output")
-	if err != nil {
-		t.Fatalf("output flag missing: %v", err)
-	}
-	if output != "" {
-		t.Errorf("expected default output to be empty, got %q", output)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			value, err := tc.getFlagValue()
+			if err != nil {
+				t.Errorf("error getting flag value: %v", err)
+			}
+			if value != tc.expected {
+				t.Errorf("expected %v, got %v", tc.expected, value)
+			}
+		})
 	}
 }
 

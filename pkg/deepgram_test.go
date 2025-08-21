@@ -31,36 +31,51 @@ func TestDGCmd_FlagsDefaults(t *testing.T) {
 		t.Fatalf("deepgramCmd not found")
 	}
 
-	lang, err := dgCmd.Flags().GetString("language")
-	if err != nil {
-		t.Fatalf("language flag missing: %v", err)
-	}
-	if lang != "" {
-		t.Errorf("expected default language to be empty, got %q", lang)
+	testCases := []struct {
+		name         string
+		expected     string
+		getFlagValue func() (string, error)
+	}{
+		{
+			name:     "language",
+			expected: "",
+			getFlagValue: func() (string, error) {
+				return dgCmd.Flags().GetString("language")
+			},
+		},
+		{
+			name:     "format",
+			expected: "json",
+			getFlagValue: func() (string, error) {
+				return dgCmd.Flags().GetString("format")
+			},
+		},
+		{
+			name:     "output",
+			expected: "",
+			getFlagValue: func() (string, error) {
+				return dgCmd.Flags().GetString("output")
+			},
+		},
+		{
+			name:     "model",
+			expected: "nova-2",
+			getFlagValue: func() (string, error) {
+				return dgCmd.Flags().GetString("model")
+			},
+		},
 	}
 
-	format, err := dgCmd.Flags().GetString("format")
-	if err != nil {
-		t.Fatalf("format flag missing: %v", err)
-	}
-	if format != "json" {
-		t.Errorf("expected default format to be 'json', got %q", format)
-	}
-
-	output, err := dgCmd.Flags().GetString("output")
-	if err != nil {
-		t.Fatalf("output flag missing: %v", err)
-	}
-	if output != "" {
-		t.Errorf("expected default output to be empty, got %q", output)
-	}
-
-	model, err := dgCmd.Flags().GetString("model")
-	if err != nil {
-		t.Fatalf("model flag missing: %v", err)
-	}
-	if model != "nova-2" {
-		t.Errorf("expected default model to be 'nova-2', got %q", model)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			value, err := tc.getFlagValue()
+			if err != nil {
+				t.Errorf("error getting flag value: %v", err)
+			}
+			if value != tc.expected {
+				t.Errorf("expected %v, got %v", tc.expected, value)
+			}
+		})
 	}
 }
 
