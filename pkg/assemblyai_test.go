@@ -30,39 +30,57 @@ func TestAAICmd_FlagsDefaults(t *testing.T) {
 	if aaiCmd == nil {
 		t.Fatalf("aaiCmd not found")
 	}
+	
+	testCases := []struct {
+		name string
+		expected string
+		getFlagValue func() (any, error)
+	}{
+		{
+			name: "language",
+			expected: "",
+			getFlagValue: func() (any, error) {
+				return aaiCmd.Flags().GetString("language")
+			},
+		},
+		{
+			name: "format",
+			expected: "json",
+			getFlagValue: func() (any, error) {
+				return aaiCmd.Flags().GetString("format")
+			},
+		},
+		{
+			name: "output",
+			expected: "",
+			getFlagValue: func() (any, error) {
+				return aaiCmd.Flags().GetString("output")
+			},
+		},
+		{
+			name: "model",
+			expected: "universal",
+			getFlagValue: func() (any, error) {
+				return aaiCmd.Flags().GetString("model")
+			},
+		},
+	}
 
-	lang, err := aaiCmd.Flags().GetString("language")
-	if err != nil {
-		t.Fatalf("language flag missing: %v", err)
-	}
-	if lang != "" {
-		t.Errorf("expected default language to be empty, got %q", lang)
-	}
-
-	format, err := aaiCmd.Flags().GetString("format")
-	if err != nil {
-		t.Fatalf("format flag missing: %v", err)
-	}
-	if format != "json" {
-		t.Errorf("expected default format to be 'json', got %q", format)
-	}
-
-	output, err := aaiCmd.Flags().GetString("output")
-	if err != nil {
-		t.Fatalf("output flag missing: %v", err)
-	}
-	if output != "" {
-		t.Errorf("expected default output to be empty, got %q", output)
-	}
-
-	model, err := aaiCmd.Flags().GetString("model")
-	if err != nil {
-		t.Fatalf("model flag missing: %v", err)
-	}
-	if model != "universal" {
-		t.Errorf("expected default model to be 'universal', got %q", model)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			val, err := tc.getFlagValue()
+			
+			if err != nil {
+				t.Fatalf("error getting flag: %v", err)
+			}
+			
+			if val != tc.expected {
+				t.Errorf("Expecting %q got %q",tc.expected, val)
+			}
+		})
 	}
 }
+
 func TestAAICmd_FlagsProperties(t *testing.T) {
 	var aaiCmd *cobra.Command
 	for _, cmd := range RootCmd.Commands() {
