@@ -7,6 +7,11 @@ import (
 var (
 	RootCmd = &cobra.Command{
 		Long:    "Transcribe audio files using Deepgram, OpenAI and AssemblyAI models.",
-		Version: "1.5.1",
+		Version: "1.5.2",
 	}
 )
+
+func init() {
+	RootCmd.SilenceErrors = true
+	RootCmd.SilenceUsage = true
+}

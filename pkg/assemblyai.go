@@ -40,7 +40,7 @@ func assemblyAI(file string) error {
 	elapsed := time.Since(start)
 
 	if err != nil {
-		return fmt.Errorf("%w", err)
+		return err
 	}
 
 	transcript := result.(assemblyai.Transcript)
