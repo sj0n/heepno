@@ -4,22 +4,22 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/sj0n/heepno/pkg/config"
-	"github.com/sj0n/heepno/pkg/shared"
 )
 
 type OpenAIProvider struct {
 	*openai.Client
 }
 
-var OpenAIOptions openai.AudioRequest = openai.AudioRequest{
-	FilePath: "",
-	Model:    config.Global.OpenaiModel,
-	Language: config.Global.Language,
-	Format:   getAudioRequestFormat(config.Global.Format),
+func createOpenAIOptions(file string) openai.AudioRequest {
+	return openai.AudioRequest{
+		FilePath: file,
+		Model:    config.Global.OpenaiModel,
+		Language: config.Global.Language,
+		Format:   getAudioRequestFormat(config.Global.Format),
+	}
 }
 
 func NewOpenAIProvider() *OpenAIProvider {
@@ -29,37 +29,23 @@ func NewOpenAIProvider() *OpenAIProvider {
 }
 
 func (p *OpenAIProvider) Transcribe(ctx context.Context, file string) (any, error) {
-	shared.PrintTranscriptionStatus("OpenAI", config.Global.OpenaiModel, config.Global.Language, "Transcribing...")
-
-	start := time.Now()
-
-	OpenAIOptions.FilePath = file
-	response, err := p.CreateTranscription(ctx, OpenAIOptions)
+	options := createOpenAIOptions(file)
+	response, err := p.CreateTranscription(ctx, options)
 
 	if err != nil {
-		return nil, fmt.Errorf("Transcription Error: %w", err)
+		return nil, fmt.Errorf("error transcribing: %w", err)
 	}
-
-	elapsed := time.Since(start)
-	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
 	return response, nil
 }
 
 func (p *OpenAIProvider) Translate(ctx context.Context, file string) (any, error) {
-	shared.PrintTranscriptionStatus("OpenAI", config.Global.OpenaiModel, config.Global.Language, "Translating...")
-
-	start := time.Now()
-
-	OpenAIOptions.FilePath = file
-	response, err := p.CreateTranslation(ctx, OpenAIOptions)
+	options := createOpenAIOptions(file)
+	response, err := p.CreateTranslation(ctx, options)
 
 	if err != nil {
-		return nil, fmt.Errorf("Translation Error: %w", err)
+		return nil, fmt.Errorf("error translating: %w", err)
 	}
-
-	elapsed := time.Since(start)
-	shared.UpdateTranscriptionStatus(fmt.Sprintf("Translated in %s", elapsed.Round(time.Second)), nil)
 
 	return response, nil
 }

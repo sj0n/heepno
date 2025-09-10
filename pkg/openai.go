@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/sj0n/heepno/pkg/config"
@@ -13,7 +14,6 @@ import (
 )
 
 var (
-	oaiModel  string
 	translate bool
 	openaiCmd = &cobra.Command{
 		Use:   "openai <file>",
@@ -37,17 +37,25 @@ func openAI(file string) error {
 	var response any
 	var err error
 
+	shared.PrintTranscriptionStatus("OpenAI", config.Global.OpenaiModel, config.Global.Language, "Translating...")
+
+	start := time.Now()
+
 	if translate {
 		response, err = client.Translate(ctx, file)
 	} else {
 		response, err = client.Transcribe(ctx, file)
 	}
 
+	elapsed := time.Since(start)
+
 	if err != nil {
 		return err
 	}
 
-	transcript := response.(*openai.AudioResponse)
+	transcript := response.(openai.AudioResponse)
+
+	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
 	if config.Global.Output != "" {
 		if err := shared.Save(transcript, transcript.Text, config.Global.Format, config.Global.Output); err != nil {
