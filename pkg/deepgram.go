@@ -9,43 +9,45 @@ import (
 
 	itfs "github.com/deepgram/deepgram-go-sdk/pkg/api/listen/v1/rest/interfaces"
 
-	"github.com/sj0n/heepno/pkg/config"
-	"github.com/sj0n/heepno/pkg/interfaces"
-	"github.com/sj0n/heepno/pkg/shared"
+	"github.com/sj0n/heepno/internal/config"
+	"github.com/sj0n/heepno/internal/console"
+	"github.com/sj0n/heepno/internal/output"
+	"github.com/sj0n/heepno/internal/provider"
 	"github.com/spf13/cobra"
 )
 
 var (
-	deepgramCmd = &cobra.Command{
+	deepgramCfg     config.Config
+	deepgramCmd     = &cobra.Command{
 		Use:   "dg <file>",
 		Short: "Transcribe an audio file using Deepgram models.",
 		Long:  "Transcribe an audio file using Deepgram models.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return deepgram(args[0])
+			return deepgram(args[0], deepgramCfg)
 		},
 	}
 )
 
-func deepgram(file string) error {
+func deepgram(file string, cfg config.Config) error {
 	if os.Getenv("DEEPGRAM_API_KEY") == "" {
 		return fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
 	}
 
 	ctx := context.Background()
-	dg := interfaces.NewDeepgramProvider()
+	dg := provider.NewDeepgramProvider()
 
-	shared.PrintTranscriptionStatus("Deepgram", config.Global.DeepgramModel, config.Global.Language, "Transcribing...")
+	console.PrintTranscriptionStatus("Deepgram", cfg.DeepgramModel, cfg.Language, "Transcribing...")
 
 	start := time.Now()
-	result, err := dg.Transcribe(ctx, file)
+	result, err := dg.Transcribe(ctx, file, cfg)
 	elapsed := time.Since(start)
 
 	if err != nil {
 		return err
 	}
 
-	shared.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
+	console.UpdateTranscriptionStatus(fmt.Sprintf("Transcribed in %s", elapsed.Round(time.Second)), nil)
 
 	transcript := result.(*itfs.PreRecordedResponse)
 	var text string
@@ -56,17 +58,17 @@ func deepgram(file string) error {
 	}
 
 	if text == "" {
-		shared.UpdateTranscriptionStatus("", fmt.Errorf("The model failed to transcribe text from the audio. Try using a different service instead."))
+		console.UpdateTranscriptionStatus("", fmt.Errorf("the model failed to transcribe text from the audio. Try using a different service instead"))
 		return nil
 	}
 
-	if config.Global.Output != "" {
-		if err := shared.Save(transcript, text, config.Global.Format, config.Global.Output); err != nil {
-			return fmt.Errorf("File Error: %w", err)
+	if cfg.Output != "" {
+		if err := output.Save(transcript, text, cfg.Format, cfg.Output); err != nil {
+			return fmt.Errorf("file error: %w", err)
 		}
 	} else {
-		if err := shared.Print(transcript, text, config.Global.Format); err != nil {
-			return fmt.Errorf("Print Error: %w", err)
+		if err := output.Print(transcript, text, cfg.Format); err != nil {
+			return fmt.Errorf("print error: %w", err)
 		}
 	}
 
@@ -76,8 +78,8 @@ func deepgram(file string) error {
 func init() {
 	RootCmd.AddCommand(deepgramCmd)
 
-	deepgramCmd.Flags().StringVarP(&config.Global.Language, "language", "l", "", "Language to transcribe")
-	deepgramCmd.Flags().StringVarP(&config.Global.DeepgramModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
-	deepgramCmd.Flags().StringVarP(&config.Global.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
-	deepgramCmd.Flags().StringVarP(&config.Global.Format, "format", "f", "json", "Transcribe format. <json|text>")
+	deepgramCmd.Flags().StringVarP(&deepgramCfg.Language, "language", "l", "", "Language to transcribe")
+	deepgramCmd.Flags().StringVarP(&deepgramCfg.DeepgramModel, "model", "m", "nova-2", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details.")
+	deepgramCmd.Flags().StringVarP(&deepgramCfg.Output, "output", "o", "", "The name of the output file. If not specified, the output will be printed to the console.")
+	deepgramCmd.Flags().StringVarP(&deepgramCfg.Format, "format", "f", "json", "Transcribe format. <json|text>")
 }

@@ -1,4 +1,4 @@
-package shared
+package output
 
 import (
 	"encoding/json"
@@ -12,7 +12,7 @@ func Print(data any, text string, format string) error {
 	case "json", "verbose_json":
 		data, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
-			return fmt.Errorf("JSON Error: %v\n", err)
+			return fmt.Errorf("json error: %w", err)
 		}
 		fmt.Println(string(data))
 	default:
@@ -27,26 +27,26 @@ func Save(data any, text string, format string, output string) error {
 	cwd, err := os.Getwd()
 
 	if err != nil {
-		return fmt.Errorf("File Error: %w", err)
+		return fmt.Errorf("file error: %w", err)
 	}
 
 	switch format {
 	case "json", "verbose_json":
 		data, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
-			return fmt.Errorf("JSON Error: %w", err)
+			return fmt.Errorf("json error: %w", err)
 		}
 
 		fileName, err := writeToFile(output, data, "json")
 		if err != nil {
-			return fmt.Errorf("File Error: %w", err)
+			return fmt.Errorf("file error: %w", err)
 		}
 
 		fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
 	default:
 		fileName, err := writeToFile(output, text, "text")
 		if err != nil {
-			return fmt.Errorf("File Error: %w", err)
+			return fmt.Errorf("file error: %w", err)
 		}
 
 		fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)

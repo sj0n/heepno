@@ -1,4 +1,4 @@
-package interfaces
+package provider
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	interfacesv1 "github.com/deepgram/deepgram-go-sdk/pkg/client/interfaces/v1"
 	client "github.com/deepgram/deepgram-go-sdk/pkg/client/listen"
 
-	"github.com/sj0n/heepno/pkg/config"
+	"github.com/sj0n/heepno/internal/config"
 )
 
 type DeepgramProvider struct {
@@ -23,19 +23,19 @@ func NewDeepgramProvider() *DeepgramProvider {
 	}
 }
 
-func (p *DeepgramProvider) Transcribe(ctx context.Context, file string) (any, error) {
+func (p *DeepgramProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (any, error) {
 	response, err := p.FromFile(ctx, file, &interfacesv1.PreRecordedTranscriptionOptions{
-		Model:       config.Global.DeepgramModel,
-		Language:    config.Global.Language,
+		Model:       cfg.DeepgramModel,
+		Language:    cfg.Language,
 		SmartFormat: true,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("Transcription Error: %w", err)
+		return nil, fmt.Errorf("transcription error: %w", err)
 	}
 
 	return response, nil
 }
 
-func (p *DeepgramProvider) Translate(ctx context.Context, file string) (any, error) {
-	return nil, fmt.Errorf("Method Error: Not Implemented.")
+func (p *DeepgramProvider) Translate(ctx context.Context, file string, cfg config.Config) (any, error) {
+	return nil, fmt.Errorf("method error: not implemented")
 }
