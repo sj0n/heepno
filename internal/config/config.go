@@ -1,6 +1,6 @@
 package config
 
-type GlobalConfig struct {
+type Config struct {
 	Language      string
 	Output        string
 	Format        string
@@ -8,5 +8,3 @@ type GlobalConfig struct {
 	DeepgramModel string
 	OpenaiModel   string
 }
-
-var Global = &GlobalConfig{}

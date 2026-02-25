@@ -1,4 +1,4 @@
-package interfaces
+package provider
 
 import (
 	"context"
@@ -6,19 +6,19 @@ import (
 	"os"
 
 	"github.com/sashabaranov/go-openai"
-	"github.com/sj0n/heepno/pkg/config"
+	"github.com/sj0n/heepno/internal/config"
 )
 
 type OpenAIProvider struct {
 	*openai.Client
 }
 
-func createOpenAIOptions(file string) openai.AudioRequest {
+func createOpenAIOptions(file string, cfg config.Config) openai.AudioRequest {
 	return openai.AudioRequest{
 		FilePath: file,
-		Model:    config.Global.OpenaiModel,
-		Language: config.Global.Language,
-		Format:   getAudioRequestFormat(config.Global.Format),
+		Model:    cfg.OpenaiModel,
+		Language: cfg.Language,
+		Format:   getAudioRequestFormat(cfg.Format),
 	}
 }
 
@@ -28,23 +28,23 @@ func NewOpenAIProvider() *OpenAIProvider {
 	}
 }
 
-func (p *OpenAIProvider) Transcribe(ctx context.Context, file string) (any, error) {
-	options := createOpenAIOptions(file)
+func (p *OpenAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (any, error) {
+	options := createOpenAIOptions(file, cfg)
 	response, err := p.CreateTranscription(ctx, options)
 
 	if err != nil {
-		return nil, fmt.Errorf("error transcribing: %w", err)
+		return nil, fmt.Errorf("transcription error: %w", err)
 	}
 
 	return response, nil
 }
 
-func (p *OpenAIProvider) Translate(ctx context.Context, file string) (any, error) {
-	options := createOpenAIOptions(file)
+func (p *OpenAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (any, error) {
+	options := createOpenAIOptions(file, cfg)
 	response, err := p.CreateTranslation(ctx, options)
 
 	if err != nil {
-		return nil, fmt.Errorf("error translating: %w", err)
+		return nil, fmt.Errorf("translation error: %w", err)
 	}
 
 	return response, nil
