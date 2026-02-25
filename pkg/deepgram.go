@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -34,7 +35,8 @@ func deepgram(file string, cfg config.Config) error {
 		return fmt.Errorf("DEEPGRAM_API_KEY environment variable is not set")
 	}
 
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 	dg := provider.NewDeepgramProvider()
 
 	console.PrintTranscriptionStatus("Deepgram", cfg.DeepgramModel, cfg.Language, "Transcribing...")
@@ -58,7 +60,7 @@ func deepgram(file string, cfg config.Config) error {
 	}
 
 	if text == "" {
-		console.UpdateTranscriptionStatus("", fmt.Errorf("the model failed to transcribe text from the audio. Try using a different service instead"))
+		console.UpdateTranscriptionStatus("no speech detected", nil)
 		return nil
 	}
 

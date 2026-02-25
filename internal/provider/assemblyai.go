@@ -37,8 +37,3 @@ func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg co
 
 	return transcript, nil
 }
-
-// TODO: Implement translation
-func (p *AssemblyAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (any, error) {
-	return nil, fmt.Errorf("method error: not implemented")
-}

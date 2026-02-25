@@ -35,7 +35,3 @@ func (p *DeepgramProvider) Transcribe(ctx context.Context, file string, cfg conf
 
 	return response, nil
 }
-
-func (p *DeepgramProvider) Translate(ctx context.Context, file string, cfg config.Config) (any, error) {
-	return nil, fmt.Errorf("method error: not implemented")
-}
