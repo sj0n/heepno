@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/AssemblyAI/assemblyai-go-sdk"
@@ -32,7 +33,8 @@ func assemblyAI(file string, cfg config.Config) error {
 		return fmt.Errorf("ASSEMBLYAI_API_KEY environment variable is not set")
 	}
 
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 	client := provider.NewAssemblyAIProvider()
 
 	console.PrintTranscriptionStatus("AssemblyAI", cfg.AaiModel, cfg.Language, "Transcribing...")

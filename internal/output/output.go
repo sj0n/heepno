@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 // Print prints the data to the console in the specified format.
@@ -42,14 +43,14 @@ func Save(data any, text string, format string, output string) error {
 			return fmt.Errorf("file error: %w", err)
 		}
 
-		fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
+		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
 	default:
 		fileName, err := writeToFile(output, text, "text")
 		if err != nil {
 			return fmt.Errorf("file error: %w", err)
 		}
 
-		fmt.Printf("Transcription saved to %s\\%s\n", cwd, fileName)
+		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
 	}
 
 	return nil

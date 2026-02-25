@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/sashabaranov/go-openai"
@@ -33,7 +34,8 @@ func openAI(file string, cfg config.Config) error {
 		return fmt.Errorf("OPENAI_API_KEY environment variable is not set")
 	}
 
-	ctx := context.Background()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 	client := provider.NewOpenAIProvider()
 
 	var response any
