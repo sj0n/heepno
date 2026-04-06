@@ -3,6 +3,7 @@ package output
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 func writeToFile(filename string, data any, format string) (string, error) {
@@ -21,7 +22,10 @@ func writeToFile(filename string, data any, format string) (string, error) {
 
 	fmt.Println("\nSaving to file...")
 
-	file, err := os.Create(filename + ext)
+	if !strings.HasSuffix(filename, ext) {
+		filename = filename + ext
+	}
+	file, err := os.Create(filename)
 	if err != nil {
 		return "", fmt.Errorf("file error %w", err)
 	}

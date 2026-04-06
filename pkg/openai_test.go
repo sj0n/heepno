@@ -103,11 +103,11 @@ func TestOpenAICmd_FlagsProperties(t *testing.T) {
 		shorthand string
 		usage     string
 	}{
-		{"translate", "t", "Translate the audio file. Not setting this flag will transcribe the audio file."},
-		{"language", "l", "Language of the source audio. Setting this helps in accuracy and velocity."},
-		{"model", "m", "Model to use."},
-		{"format", "f", "Format to use. json, text, srt, verbose_json, vtt"},
-		{"output", "o", "The name of the output file. If not specified, the output will be printed to the console."},
+		{"translate", "t", "Translate audio to English"},
+		{"language", "l", "Source language"},
+		{"model", "m", "Model to use"},
+		{"format", "f", "Output format: json, text, srt, verbose_json, vtt"},
+		{"output", "o", "Output file"},
 	}
 
 	for _, tc := range testCases {

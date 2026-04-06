@@ -98,10 +98,10 @@ func TestAAICmd_FlagsProperties(t *testing.T) {
 		shorthand string
 		usage     string
 	}{
-		{"language", "l", "Language to transcribe. See https://www.assemblyai.com/docs/getting-started/supported-languages for more details."},
-		{"format", "f", "Transcribe format. <json|text>"},
-		{"output", "o", "The name of the output file. If not specified, the output will be printed to the console."},
-		{"model", "m", "Model to use. <universal|slam-1(only support English.)>"},
+		{"language", "l", "Language code"},
+		{"format", "f", "Output format: json, text"},
+		{"output", "o", "Output file"},
+		{"model", "m", "Model: universal, slam-1 (English only)"},
 	}
 
 	for _, tc := range testCases {
