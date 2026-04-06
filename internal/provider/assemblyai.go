@@ -19,7 +19,7 @@ func NewAssemblyAIProvider() *AssemblyAIProvider {
 	}
 }
 
-func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (any, error) {
+func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (*Result, error) {
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, fmt.Errorf("file error: %w", err)
@@ -29,11 +29,20 @@ func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg co
 	transcript, err := p.Transcripts.TranscribeFromReader(ctx, f, &assemblyai.TranscriptOptionalParams{
 		LanguageCode: assemblyai.TranscriptLanguageCode(cfg.Language),
 		FormatText:   assemblyai.Bool(true),
-		SpeechModel:  assemblyai.SpeechModel(cfg.AaiModel),
+		SpeechModel:  assemblyai.SpeechModel(cfg.Model),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("transcription error: %w", err)
 	}
 
-	return transcript, nil
+	var text string
+	if transcript.Text != nil {
+		text = *transcript.Text
+	}
+	return &Result{Text: text, Raw: transcript}, nil
+}
+
+// Unused - satisfies interface, implement if needed
+func (p *AssemblyAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (*Result, error) {
+	return nil, fmt.Errorf("translation not supported for AssemblyAI")
 }

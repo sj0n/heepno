@@ -13,47 +13,39 @@ type OpenAIProvider struct {
 	*openai.Client
 }
 
-func createOpenAIOptions(file string, cfg config.Config) openai.AudioRequest {
-	return openai.AudioRequest{
-		FilePath: file,
-		Model:    cfg.OpenaiModel,
-		Language: cfg.Language,
-		Format:   getAudioRequestFormat(cfg.Format),
-	}
-}
-
 func NewOpenAIProvider() *OpenAIProvider {
-	return &OpenAIProvider{
-		openai.NewClient(os.Getenv("OPENAI_API_KEY")),
-	}
+	return &OpenAIProvider{openai.NewClient(os.Getenv("OPENAI_API_KEY"))}
 }
 
-func (p *OpenAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (any, error) {
-	options := createOpenAIOptions(file, cfg)
-	response, err := p.CreateTranscription(ctx, options)
-
+func (p *OpenAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (*Result, error) {
+	resp, err := p.CreateTranscription(ctx, openai.AudioRequest{
+		Model:    cfg.Model,
+		FilePath: file,
+		Language: cfg.Language,
+		Format:   audioFormat(cfg.Format),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("transcription error: %w", err)
 	}
-
-	return response, nil
+	return &Result{Text: resp.Text, Raw: resp}, nil
 }
 
-func (p *OpenAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (any, error) {
-	options := createOpenAIOptions(file, cfg)
-	response, err := p.CreateTranslation(ctx, options)
+func (p *OpenAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (*Result, error) {
+	resp, err := p.CreateTranslation(ctx, openai.AudioRequest{
+		FilePath: file,
+		Model:    cfg.Model,
+		Language: cfg.Language,
+		Format:   audioFormat(cfg.Format),
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("translation error: %w", err)
 	}
-
-	return response, nil
+	return &Result{Text: resp.Text, Raw: resp}, nil
 }
 
-func getAudioRequestFormat(format string) openai.AudioResponseFormat {
+func audioFormat(format string) openai.AudioResponseFormat {
 	switch format {
-	case "json":
-		return openai.AudioResponseFormatJSON
 	case "text":
 		return openai.AudioResponseFormatText
 	case "srt":
