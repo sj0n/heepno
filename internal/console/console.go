@@ -2,32 +2,34 @@ package console
 
 import (
 	"fmt"
-)
 
-const (
-	colorReset  = "\033[0m"
-	colorBlue   = "\033[34m"
-	colorYellow = "\033[33m"
-	colorBold   = "\033[1m"
+	"github.com/fatih/color"
 )
 
 func PrintTranscriptionStatus(provider, model, language, status string) {
-	fmt.Printf("%sProvider:%s  %s%s%s\n", colorBold, colorReset, colorBlue, provider, colorReset)
-	fmt.Printf("%sModel:%s     %s%s%s\n", colorBold, colorReset, colorBlue, model, colorReset)
-	fmt.Printf("%sLanguage:%s  %s%s%s\n", colorBold, colorReset, colorBlue, language, colorReset)
-	fmt.Printf("%sStatus:%s    %s%s%s\n\n", colorBold, colorReset, colorYellow, status, colorReset)
+	bold := color.New(color.Bold)
+	blue := color.New(color.FgBlue)
+	yellow := color.New(color.FgYellow)
+
+	bold.Println("Provider: ", blue.Sprint(provider))
+	bold.Println("Model:     ", blue.Sprint(model))
+	bold.Println("Language:  ", blue.Sprint(language))
+	bold.Println("Status:    ", yellow.Sprint(status))
+	fmt.Println()
 }
 
-// UpdateTranscriptionStatus replaces only the status line, keeping the rest unchanged.
-// Call this after PrintTranscriptionStatus to update the status in place.
 func UpdateTranscriptionStatus(status string, err error) {
-	// Move cursor up 2 lines (from below the status line), return to start of line, and clear the line
 	fmt.Print("\033[2A\r\033[K")
 
+	bold := color.New(color.Bold)
+	yellow := color.New(color.FgYellow)
+
 	if err != nil {
-		fmt.Printf("%sStatus:%s    %s%s%s\n\n", colorBold, colorReset, colorYellow, err, colorReset)
+		bold.Println("Status:    ", yellow.Sprint(err.Error()))
+		fmt.Println()
 		return
 	}
 
-	fmt.Printf("%sStatus:%s    %s%s%s\n\n", colorBold, colorReset, colorYellow, status, colorReset)
+	bold.Println("Status:    ", yellow.Sprint(status))
+	fmt.Println()
 }

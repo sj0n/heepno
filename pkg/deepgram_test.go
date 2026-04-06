@@ -96,10 +96,10 @@ func TestDGCmd_FlagsProperties(t *testing.T) {
 		shorthand string
 		usage     string
 	}{
-		{"language", "l", "Language to transcribe"},
-		{"format", "f", "Transcribe format. <json|text>"},
-		{"output", "o", "The name of the output file. If not specified, the output will be printed to the console."},
-		{"model", "m", "Model to use. See https://developers.deepgram.com/docs/models-languages-overview for more details."},
+		{"language", "l", "Language code"},
+		{"format", "f", "Output format: json, text"},
+		{"output", "o", "Output file"},
+		{"model", "m", "Model to use"},
 	}
 
 	for _, tc := range testCases {
