@@ -1,6 +1,6 @@
 module github.com/sj0n/heepno
 
-go 1.25.0
+go 1.26.1
 
 require (
 	github.com/AssemblyAI/assemblyai-go-sdk v1.10.0
