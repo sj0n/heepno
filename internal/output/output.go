@@ -11,11 +11,11 @@ import (
 func Print(data any, text string, format string) error {
 	switch format {
 	case "json", "verbose_json":
-		data, err := json.MarshalIndent(data, "", "  ")
+		jsonBytes, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			return fmt.Errorf("json error: %w", err)
 		}
-		fmt.Println(string(data))
+		fmt.Println(string(jsonBytes))
 	default:
 		fmt.Println(text)
 	}
@@ -33,24 +33,37 @@ func Save(data any, text string, format string, output string) error {
 
 	switch format {
 	case "json", "verbose_json":
-		data, err := json.MarshalIndent(data, "", "  ")
+		jsonBytes, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			return fmt.Errorf("json error: %w", err)
 		}
 
-		fileName, err := writeToFile(output, data, "json")
+		fileName, err := writeToFile(output, jsonBytes, "json")
 		if err != nil {
 			return fmt.Errorf("file error: %w", err)
 		}
 
 		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
-	default:
+	case "text":
 		fileName, err := writeToFile(output, text, "text")
 		if err != nil {
 			return fmt.Errorf("file error: %w", err)
 		}
-
 		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
+	case "srt":
+		fileName, err := writeToFile(output, text, "srt")
+		if err != nil {
+			return fmt.Errorf("file error: %w", err)
+		}
+		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
+	case "vtt":
+		fileName, err := writeToFile(output, text, "vtt")
+		if err != nil {
+			return fmt.Errorf("file error: %w", err)
+		}
+		fmt.Printf("Transcription saved to %s\n", filepath.Join(cwd, fileName))
+	default:
+		return fmt.Errorf("unsupported format: %s", format)
 	}
 
 	return nil

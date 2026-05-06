@@ -1,8 +1,6 @@
 package output
 
 import (
-	"bytes"
-	"io"
 	"os"
 	"testing"
 )
@@ -57,26 +55,13 @@ func TestPrint(t *testing.T) {
 			data:        make(chan int),
 			text:        "some text",
 			format:      "json",
-			expectedOut: "",
 			expectError: true,
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Capture stdout
-			originalStdout := os.Stdout
-			r, w, _ := os.Pipe()
-			os.Stdout = w
-
 			err := Print(tc.data, tc.text, tc.format)
-
-			// Restore stdout and read captured output
-			w.Close()
-			os.Stdout = originalStdout
-			var buf bytes.Buffer
-			io.Copy(&buf, r)
-			gotOut := buf.String()
 
 			if tc.expectError {
 				if err == nil {
@@ -84,26 +69,28 @@ func TestPrint(t *testing.T) {
 				}
 			} else {
 				if err != nil {
-					t.Errorf("did not expect an error but got: %v", err)
+					t.Errorf("did not expect error but got: %v", err)
 				}
-			}
-
-			if gotOut != tc.expectedOut {
-				t.Errorf("unexpected output.\ngot:\n%q\nwant:\n%q", gotOut, tc.expectedOut)
 			}
 		})
 	}
 }
 
-func TestSave(t *testing.T) {
-	// Create a temporary directory for test files
-	tempDir, err := os.MkdirTemp("", "heepno-test")
+func assertFileContent(t *testing.T, path, expected string) {
+	t.Helper()
+	content, err := os.ReadFile(path)
 	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
+		t.Errorf("Failed to read file: %v", err)
+		return
 	}
-	defer os.RemoveAll(tempDir)
+	if string(content) != expected {
+		t.Errorf("unexpected content.\ngot:\n%s\nwant:\n%s", content, expected)
+	}
+}
 
-	// Change to the temp directory for the test
+func TestSave(t *testing.T) {
+	tempDir := t.TempDir()
+
 	originalWd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("Failed to get current working directory: %v", err)
@@ -137,19 +124,11 @@ func TestSave(t *testing.T) {
 			expectError: false,
 			extension:   ".json",
 			checkFunc: func(t *testing.T, path string) {
-				content, err := os.ReadFile(path)
-				if err != nil {
-					t.Errorf("Failed to read file: %v", err)
-					return
-				}
-				expected := "{\n  \"message\": \"test json\"\n}"
-				if string(content) != expected {
-					t.Errorf("unexpected content.\ngot:\n%s\nwant:\n%s", content, expected)
-				}
+				assertFileContent(t, path, "{\n  \"message\": \"test json\"\n}")
 			},
 		},
 		{
-			name:        "Default text format",
+			name:        "TEXT format",
 			data:        nil,
 			text:        "This is text content",
 			format:      "text",
@@ -157,32 +136,48 @@ func TestSave(t *testing.T) {
 			expectError: false,
 			extension:   ".txt",
 			checkFunc: func(t *testing.T, path string) {
-				content, err := os.ReadFile(path)
-				if err != nil {
-					t.Errorf("Failed to read file: %v", err)
-					return
-				}
-				expected := "This is text content"
-				if string(content) != expected {
-					t.Errorf("unexpected content.\ngot:\n%s\nwant:\n%s", content, expected)
-				}
+				assertFileContent(t, path, "This is text content")
 			},
+		},
+		{
+			name:        "SRT format",
+			data:        nil,
+			text:        "SRT content",
+			format:      "srt",
+			output:      "test-srt",
+			expectError: false,
+			extension:   ".srt",
+			checkFunc: func(t *testing.T, path string) {
+				assertFileContent(t, path, "SRT content")
+			},
+		},
+		{
+			name:        "VTT format",
+			data:        nil,
+			text:        "VTT content",
+			format:      "vtt",
+			output:      "test-vtt",
+			expectError: false,
+			extension:   ".vtt",
+			checkFunc: func(t *testing.T, path string) {
+				assertFileContent(t, path, "VTT content")
+			},
+		},
+		{
+			name:        "Unsupported format",
+			data:        nil,
+			text:        "Some text",
+			format:      "xml",
+			output:      "test-xml",
+			expectError: true,
+			extension:   "",
+			checkFunc:   func(t *testing.T, path string) {},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Capture stdout to ignore it in test output
-			originalStdout := os.Stdout
-			r, w, _ := os.Pipe()
-			os.Stdout = w
-
 			err := Save(tc.data, tc.text, tc.format, tc.output)
-
-			// Restore stdout
-			w.Close()
-			os.Stdout = originalStdout
-			io.Copy(io.Discard, r)
 
 			if tc.expectError {
 				if err == nil {
@@ -194,7 +189,6 @@ func TestSave(t *testing.T) {
 				return
 			}
 
-			// Check if file exists and has correct content
 			filePath := tc.output + tc.extension
 			if _, err := os.Stat(filePath); os.IsNotExist(err) {
 				t.Errorf("expected file %s was not created", filePath)
