@@ -18,6 +18,8 @@ func writeToFile(filename string, data any, format string) (string, error) {
 		ext = ".srt"
 	case "vtt":
 		ext = ".vtt"
+	default:
+		return "", fmt.Errorf("unsupported format: %s", format)
 	}
 
 	fmt.Println("\nSaving to file...")
@@ -44,6 +46,8 @@ func writeToFile(filename string, data any, format string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("write error %w", err)
 		}
+	default:
+		return "", fmt.Errorf("unsupported data type: %T", data)
 	}
 
 	return file.Name(), nil
