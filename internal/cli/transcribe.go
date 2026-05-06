@@ -46,15 +46,14 @@ func ValidateFile(path string) error {
 	return nil
 }
 
-// ValidateFormat checks if the format is supported
-func ValidateFormat(format string) error {
-	validFormats := []string{"json", "text", "srt", "vtt", "verbose_json"}
-	for _, valid := range validFormats {
+// ValidateFormat checks if the format is supported by the provider
+func ValidateFormat(format string, supportedFormats []string) error {
+	for _, valid := range supportedFormats {
 		if strings.ToLower(format) == valid {
 			return nil
 		}
 	}
-	return fmt.Errorf("unsupported format: %s (supported: json, text, srt, vtt, verbose_json)", format)
+	return fmt.Errorf("unsupported format: %s (supported: %s)", format, strings.Join(supportedFormats, ", "))
 }
 
 // ValidateLanguage checks if the language code is valid
@@ -141,9 +140,9 @@ func ValidateOutputPath(path string) error {
 	return nil
 }
 
-func Run(ctx context.Context, name, model, lang, format, out string, fn TranscribeFunc) error {
+func Run(ctx context.Context, name, model, lang, format, out string, supportedFormats []string, fn TranscribeFunc) error {
 	// Validate all inputs before starting
-	if err := ValidateFormat(format); err != nil {
+	if err := ValidateFormat(format, supportedFormats); err != nil {
 		return err
 	}
 
