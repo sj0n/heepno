@@ -58,7 +58,7 @@ func createCommand(shortCommand string, providerCfg ProviderConfig) *cobra.Comma
 				return err
 			}
 
-			var client provider.Provider
+			var client provider.Transcriber
 			switch providerCfg.Name {
 			case "OpenAI":
 				client = provider.NewOpenAIProvider()
@@ -70,8 +70,8 @@ func createCommand(shortCommand string, providerCfg ProviderConfig) *cobra.Comma
 
 			return Run(context.Background(), providerCfg.Name, cliCfg.Model, cliCfg.Language, cliCfg.Format, cliCfg.Output, providerCfg.SupportedFormats,
 				func(ctx context.Context) (*provider.Result, error) {
-					if providerCfg.SupportTranslate {
-						return client.Translate(ctx, args[0], cliCfg)
+					if translator, ok := client.(provider.Translator); ok {
+						return translator.Translate(ctx, args[0], cliCfg)
 					}
 					return client.Transcribe(ctx, args[0], cliCfg)
 				})

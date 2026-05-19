@@ -11,11 +11,6 @@ type Result struct {
 	Raw  any
 }
 
-type Provider interface {
-	Transcriber
-	Translator
-}
-
 type Transcriber interface {
 	Transcribe(ctx context.Context, file string, cfg config.Config) (*Result, error)
 }
