@@ -14,7 +14,7 @@ import (
 )
 
 type DeepgramProvider struct {
-	*api.Client
+	client *api.Client
 }
 
 var deepgramInitOnce sync.Once
@@ -30,7 +30,7 @@ func NewDeepgramProvider() *DeepgramProvider {
 }
 
 func (p *DeepgramProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (*Result, error) {
-	resp, err := p.FromFile(ctx, file, &interfacesv1.PreRecordedTranscriptionOptions{
+	resp, err := p.client.FromFile(ctx, file, &interfacesv1.PreRecordedTranscriptionOptions{
 		Model:       cfg.Model,
 		Language:    cfg.Language,
 		SmartFormat: true,
@@ -47,9 +47,4 @@ func (p *DeepgramProvider) Transcribe(ctx context.Context, file string, cfg conf
 
 	text := strings.TrimSpace(resp.Results.Channels[0].Alternatives[0].Transcript)
 	return &Result{Text: text, Raw: resp}, nil
-}
-
-// Translate is not supported for Deepgram.
-func (p *DeepgramProvider) Translate(ctx context.Context, file string, cfg config.Config) (*Result, error) {
-	return nil, fmt.Errorf("translation not supported for Deepgram")
 }

@@ -10,7 +10,7 @@ import (
 )
 
 type AssemblyAIProvider struct {
-	*assemblyai.Client
+	client *assemblyai.Client
 }
 
 func NewAssemblyAIProvider() *AssemblyAIProvider {
@@ -26,7 +26,7 @@ func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg co
 	}
 	defer f.Close()
 
-	transcript, err := p.Transcripts.TranscribeFromReader(ctx, f, &assemblyai.TranscriptOptionalParams{
+	transcript, err := p.client.Transcripts.TranscribeFromReader(ctx, f, &assemblyai.TranscriptOptionalParams{
 		LanguageCode: assemblyai.TranscriptLanguageCode(cfg.Language),
 		FormatText:   assemblyai.Bool(true),
 		SpeechModel:  assemblyai.SpeechModel(cfg.Model),
@@ -40,9 +40,4 @@ func (p *AssemblyAIProvider) Transcribe(ctx context.Context, file string, cfg co
 		text = *transcript.Text
 	}
 	return &Result{Text: text, Raw: transcript}, nil
-}
-
-// Unused - satisfies interface, implement if needed
-func (p *AssemblyAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (*Result, error) {
-	return nil, fmt.Errorf("translation not supported for AssemblyAI")
 }
