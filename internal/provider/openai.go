@@ -10,7 +10,7 @@ import (
 )
 
 type OpenAIProvider struct {
-	*openai.Client
+	client *openai.Client
 }
 
 func NewOpenAIProvider() *OpenAIProvider {
@@ -18,7 +18,7 @@ func NewOpenAIProvider() *OpenAIProvider {
 }
 
 func (p *OpenAIProvider) Transcribe(ctx context.Context, file string, cfg config.Config) (*Result, error) {
-	resp, err := p.CreateTranscription(ctx, openai.AudioRequest{
+	resp, err := p.client.CreateTranscription(ctx, openai.AudioRequest{
 		Model:    cfg.Model,
 		FilePath: file,
 		Language: cfg.Language,
@@ -31,7 +31,7 @@ func (p *OpenAIProvider) Transcribe(ctx context.Context, file string, cfg config
 }
 
 func (p *OpenAIProvider) Translate(ctx context.Context, file string, cfg config.Config) (*Result, error) {
-	resp, err := p.CreateTranslation(ctx, openai.AudioRequest{
+	resp, err := p.client.CreateTranslation(ctx, openai.AudioRequest{
 		FilePath: file,
 		Model:    cfg.Model,
 		Language: cfg.Language,
